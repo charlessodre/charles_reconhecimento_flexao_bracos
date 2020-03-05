@@ -1,0 +1,18 @@
+# Pontos de Saída modelo MPII #
+
+00 - Cabeça; 
+01 - Pescoço;
+02 - Ombro Direito;
+03 - Cotovelo Direito;
+04 - Pulso Direito;
+05 - Ombro Esquerdo;
+06 - Cotovelo Esquerdo;
+07 - Pulso Esquerdo;
+08 - Quadril Direito;
+09 - Joelho Direito;
+10 - Tornozelo direito;
+11 - Quadril esquerdo;
+12 - Joelho esquerdo
+13 - Tornozelo esquerdo ;
+14 - Peito (Torax);
+15 - Fundo;
