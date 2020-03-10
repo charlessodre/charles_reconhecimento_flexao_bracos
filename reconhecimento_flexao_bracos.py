@@ -1,3 +1,4 @@
+# coding=utf-8
 import time
 import cv2
 import matplotlib.pyplot as plt
@@ -38,7 +39,11 @@ qtd_frames = 0
 pontos = None
 
 # Carrega o Video que será analisado.
-frame = "./videos/flexao_bracos_reduzido.mp4"
+#frame = "./videos/flexao_bracos_lateral_perto.mp4"
+frame = "./videos/flexao_bracos_frontal.mp4"
+#frame = "./videos/flexao_bracos_lateral_distante.mp4"
+
+
 captura = cv2.VideoCapture(frame)
 conectado, frame = captura.read()
 
@@ -48,7 +53,7 @@ gravar_video = cv2.VideoWriter(video_saida, cv2.VideoWriter_fourcc(*'XVID'), 10,
 
 # Carrega o modelo que já foi treinado.
 modelo = cv2.dnn.readNetFromCaffe(arquivo_proto, arquivo_pesos)
-limite = 0.2  # 30%
+limite = 0.3  # 30%
 
 
 def desenha_pontos(numero_pontos, saida_RN, video_largura, video_altura):
@@ -91,12 +96,12 @@ def desenha_tracos(pontos, pares_pontos):
 def desenha_linha_cotovelos(pontos, frame_saida, video_largura):
     largura_frame = int(video_largura)
 
-    # if pontos[0]:
-    #     y = pontos[0][1]
-    #     inicio = (0, y)
-    #     fim = (largura_frame, y)
-    #     cv2.line(frame_saida, inicio, fim, (0, 255, 255), 1)
-    #     cv2.putText(frame_saida, "cabeca [{}]".format(inicio), inicio, fonte, tamanho_fonte, cor_fonte)
+    if pontos[0]:
+        y = pontos[0][1]
+        inicio = (0, y)
+        fim = (largura_frame, y)
+        cv2.line(frame_saida, inicio, fim, (0, 255, 255), 1)
+        cv2.putText(frame_saida, "cabeca [{}]".format(inicio), inicio, fonte, tamanho_fonte, cor_fonte)
 
     if pontos[3]:
         y = pontos[3][1]
@@ -148,15 +153,15 @@ def desenha_linha_base_pulso(pontos, frame_saida, video_largura, y_linha_base):
     return y_linha_base
 
 
-def desenha_linha_base_cabeca(pontos, frame_saida, video_largura, y_linha_base):
+def desenha_linha_base_cabeca(pontos, frame_saida, video_largura, y_linha_base, y_linha_base_pulso):
     largura_frame = int(video_largura)
 
     cabeca = pontos[0]
 
     if y_linha_base is None:
-        y_linha_base = 10000
+        y_linha_base = y_linha_base_pulso
 
-    if cabeca and cabeca[1] > y_linha_base:
+    if cabeca and (cabeca[1] < y_linha_base and cabeca[1] < y_linha_base_pulso):
         y_linha_base = cabeca[1]
 
     inicio = (0, y_linha_base)
@@ -176,19 +181,18 @@ def desenha_linha_base_cotovelo(pontos, frame_saida, video_largura, y_linha_base
     if y_linha_base is None:
         y_linha_base = y_linha_base_pulso + 1
 
-    if y_linha_base > y_linha_base_pulso:
-        if cotevelo_direito or cotovelo_esquerdo:
-            if cotevelo_direito and cotevelo_direito[1] > y_linha_base:
-                y_linha_base = cotevelo_direito[1]
+    if cotevelo_direito and (cotevelo_direito[1] < y_linha_base and cotevelo_direito[1] < y_linha_base_pulso):
+        y_linha_base = cotevelo_direito[1]
 
-            if cotovelo_esquerdo and cotovelo_esquerdo[1] > y_linha_base:
-                y_linha_base = cotovelo_esquerdo[1]
+    if cotovelo_esquerdo and (cotovelo_esquerdo[1] < y_linha_base and cotovelo_esquerdo[1] < y_linha_base_pulso):
+        y_linha_base = cotovelo_esquerdo[1]
 
     inicio = (0, y_linha_base)
     fim = (largura_frame, y_linha_base)
     cv2.line(frame_saida, inicio, fim, (0, 0, 255), 1)
     cv2.putText(frame_saida, "linha base cotovelo", inicio, fonte, tamanho_fonte, cor_fonte)
 
+    cv2.line(frame_saida, (0, (y_linha_base - int(y_linha_base * .3))), (largura_frame, (y_linha_base - int(y_linha_base * .3))), (0, 0, 255), 1)
     return y_linha_base
 
 
@@ -212,10 +216,10 @@ def checa_flexao(pontos, frame_saida, y_linha_base_pulso, linha_base_cotovelo, p
                         tamanho_fonte, cor_fonte)
 
         # 100% do movimento completo
-        if percentual_movimento_flexao == 0.75 and y_cabeca * 1.1 < y_linha_base_pulso and y_cabeca * 1.1 < linha_base_cotovelo:
+        if percentual_movimento_flexao == 0.75 and y_cabeca * 1.3 < y_linha_base_pulso and y_cabeca * 1.3 < linha_base_cotovelo:
             percentual_movimento_flexao = 1
             cv2.putText(frame_saida,
-                        "Movimento {:.0%} concluido - {}".format(percentual_movimento_flexao, (cabeca[1] * 1.1)), (
+                        "Movimento {:.0%} concluido".format(percentual_movimento_flexao), (
                             300, 35), fonte,
                         tamanho_fonte, cor_fonte)
 
@@ -238,7 +242,7 @@ while (True):
 
     qtd_frames += 1
     # Processa somente os frames onde a quatidade for multiplo de 5
-    if qtd_frames % 5 == 0:
+    if qtd_frames % 2 == 0:
         # Conversão do tipo da imagem
         blob_entrada = cv2.dnn.blobFromImage(frame, 1.0 / 255, (entrada_largura, entrada_altura), (0, 0, 0),
                                              swapRB=False,
@@ -249,16 +253,16 @@ while (True):
 
         pontos = desenha_pontos(numero_pontos, saida_rede, video_largura, video_altura)
 
-        # desenha_tracos(pontos, pares_pontos)
+        desenha_tracos(pontos, pares_pontos)
 
-        # desenha_linha_cotovelos(pontos, video_copia, video_largura)
+       # desenha_linha_cotovelos(pontos, video_copia, video_largura)
 
     if pontos is not None:
         y_linha_base_pulso = desenha_linha_base_pulso(pontos, video_copia, video_largura, y_linha_base_pulso)
         y_linha_base_cotovelo = desenha_linha_base_cotovelo(pontos, video_copia, video_largura, y_linha_base_cotovelo,
                                                             y_linha_base_pulso)
 
-        y_linha_base_cabeca = desenha_linha_base_cabeca(pontos, video_copia, video_largura, y_linha_base_cabeca)
+        y_linha_base_cabeca = desenha_linha_base_cabeca(pontos, video_copia, video_largura, y_linha_base_cabeca, y_linha_base_pulso)
 
         if y_linha_base_cotovelo and y_linha_base_pulso:
             percentual_movimento_flexao, qtd_flexao_valida = checa_flexao(pontos, video_copia, y_linha_base_pulso,
