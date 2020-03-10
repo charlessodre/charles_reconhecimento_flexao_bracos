@@ -31,9 +31,9 @@ video_entrada = "./videos/flexao_bracos_frontal.mp4"
 #video_entrada = "./videos/flexao_bracos_lateral_distante.mp4"
 
 
-# Acessa o video para obter as dimensões.
-captura_inicial = cv2.VideoCapture(video_entrada)
-_, frame_inicial = captura_inicial.read()
+# Acessa o video que será analisado..
+captura = cv2.VideoCapture(video_entrada)
+_, frame_inicial = captura.read()
 
 # Define as configurações do vídeo de saida que vai conter os pontos detectados e movimentos detectados.
 video_saida = "./flexao_bracos_saida.avi"
@@ -161,14 +161,16 @@ def desenha_linha_base_cotovelo(pontos, frame_saida, video_largura, y_linha_base
     cv2.line(frame_saida, inicio, fim, (0, 0, 255), 1)
     cv2.putText(frame_saida, "linha base cotovelo", inicio, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0) )
 
-    cv2.line(frame_saida, (0, (y_linha_base - int(y_linha_base * .3))), (largura_frame, (y_linha_base - int(y_linha_base * .3))), (0, 0, 255), 1)
+    cv2.line(frame_saida, (0, (y_linha_base - int(y_linha_base * .6))), (largura_frame, (y_linha_base - int(y_linha_base * .6))), (255, 0, 0), 1)
+    cv2.line(frame_saida, (0, (y_linha_base + int(y_linha_base * .2))), (largura_frame, (y_linha_base + int(y_linha_base * .2))), (255, 0, 0), 1)
+
     return y_linha_base
 
 
 def checa_flexao(pontos, frame_saida, y_linha_base_pulso, linha_base_cotovelo, percentual_movimento_flexao,  qtd_flexao_valida):
     cabeca = pontos[0]
-	percentual_inicio = 0.3
-	percentual_fim = 0.3
+    percentual_inicio = 0.3
+    percentual_fim = 0.6
 
     if cabeca:
 
@@ -184,7 +186,7 @@ def checa_flexao(pontos, frame_saida, y_linha_base_pulso, linha_base_cotovelo, p
             cv2.putText(frame_saida, "Movimento {:.0%} concluido".format(percentual_movimento_flexao), (300, 35), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0) )
 
 		
-		y_cabeca_final = y_cabeca - (y_cabeca * percentual_fim)		
+        y_cabeca_final = y_cabeca - (y_cabeca * percentual_fim)
 		
         # 100% do movimento completo
         if percentual_movimento_flexao == 0.75 and y_cabeca_final < y_linha_base_pulso and y_cabeca_final < linha_base_cotovelo:
@@ -220,30 +222,30 @@ while (True):
         modelo.setInput(blob_entrada)
         saida_rede = modelo.forward()
 
-		# Desenha os pontos detectados na imagem.
+        # Desenha os pontos detectados na imagem.
         pontos = desenha_pontos(numero_pontos, saida_rede, video_largura, video_altura)
 
-		# Desenha os traços conectando os pontos detectados na imagem.
+        # Desenha os traços conectando os pontos detectados na imagem.
         desenha_tracos(pontos, pares_pontos)
 
        # desenha_linha_cotovelos(pontos, video_copia, video_largura)
 
     if pontos is not None:
 	
-		# Desenha a linha de base do pulso que será usada como referência do "chão"
+        # Desenha a linha de base do pulso que será usada como referência do "chão"
         y_linha_base_pulso = desenha_linha_base_pulso(pontos, video_copia, video_largura, y_linha_base_pulso)
 		
-		# Desenha a linha de base do cotovelo que será usada como referência para validação do movimento.
+        # Desenha a linha de base do cotovelo que será usada como referência para validação do movimento.
         y_linha_base_cotovelo = desenha_linha_base_cotovelo(pontos, video_copia, video_largura, y_linha_base_cotovelo, y_linha_base_pulso)
 
         if y_linha_base_cotovelo and y_linha_base_pulso:
-			# Verfica se o movimento realizado é um movimento válido.
+            # Verfica se o movimento realizado é um movimento válido.
             percentual_movimento_flexao, qtd_flexao_valida = checa_flexao(pontos, video_copia, y_linha_base_pulso,
                                                                           y_linha_base_cotovelo,
                                                                           percentual_movimento_flexao,
                                                                           qtd_flexao_valida)
 		
-		cv2.putText(video_copia, "Movimentos Validos: {}".format(qtd_flexao_valida), (300, 20), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0) )
+        cv2.putText(video_copia, "Movimentos Validos: {}".format(qtd_flexao_valida), (300, 20), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0) )
 
     # Exibe o Video
     cv2.imshow('Video', video_copia)
