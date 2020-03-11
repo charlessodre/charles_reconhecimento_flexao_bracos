@@ -18,12 +18,12 @@
 
 ## Exemplo de flexões de braços reconhecidas:
 
-<p> Flexão Frontal </p>
+##### Flexão Frontal 
 ![Exemplo de flexões reconhecidas_frontal](flexao_bracos_frontal.gif)
 
-<p> Flexão Lateral Perto </p>
+#####  Flexão Lateral Perto
 ![Exemplo de flexões reconhecidas_lateral_perto](flexao_bracos_lateral_perto.gif)
 
-<p> Flexão Lateral Distante </p>
+##### Flexão Lateral Distante 
 ![Exemplo de flexões reconhecidas_lateral_distante](flexao_bracos_lateral_distante.gif)
 
