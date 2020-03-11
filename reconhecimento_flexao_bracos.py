@@ -2,7 +2,7 @@
 import cv2
 import numpy as np
 
-# Caminhos dos arquivos da rede neural que já foi treinada
+# Caminhos dos arquivos da rede neural já treinada
 arquivo_proto = "./pose/body/mpi/pose_deploy_linevec_faster_4_stages.prototxt"
 arquivo_pesos = "./pose/body/mpi/pose_iter_160000.caffemodel"
 
