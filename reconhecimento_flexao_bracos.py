@@ -1,9 +1,8 @@
 # coding=utf-8
-
 import cv2
 import numpy as np
 
-# Caminhos das estruturas da rede neural pré-treinados
+# Caminhos dos arquivos da rede neural que já foi treinada
 arquivo_proto = "./pose/body/mpi/pose_deploy_linevec_faster_4_stages.prototxt"
 arquivo_pesos = "./pose/body/mpi/pose_iter_160000.caffemodel"
 
@@ -20,29 +19,13 @@ y_linha_base_pulso = 0
 y_linha_base_cotovelo = None
 percentual_movimento_flexao = 0
 qtd_flexao_valida = 0
-
 qtd_frames = 0
 pontos = None
 
-# Carrega o Video que será analisado.
+# Caminho do Video que será analisado.
 # video_entrada = "./videos/flexao_bracos_lateral_perto.mp4"
-video_entrada = "./videos/flexao_bracos_frontal.mp4"
-# video_entrada = "./videos/flexao_bracos_lateral_distante.mp4"
-
-
-# Acessa o video que será analisado..
-captura = cv2.VideoCapture(video_entrada)
-_, frame_inicial = captura.read()
-
-# Define as configurações do vídeo de saida que vai conter os pontos detectados e movimentos detectados.
-video_saida = "./output/flexao_bracos_saida.avi"
-gravar_video = cv2.VideoWriter(video_saida, cv2.VideoWriter_fourcc(*'XVID'), 10,
-                               (frame_inicial.shape[1], frame_inicial.shape[0]))
-
-# Carrega a RN que já foi treinada e os pesos.
-modelo = cv2.dnn.readNetFromCaffe(arquivo_proto, arquivo_pesos)
-# Define o limite mínimo do mapa de confiança
-limite_confianca = 0.3  # 30%
+# video_entrada = "./videos/flexao_bracos_frontal.mp4"
+video_entrada = "./videos/flexao_bracos_lateral_distante.mp4"
 
 
 def desenha_pontos(numero_pontos, saida_RN, video_largura, video_altura):
@@ -97,7 +80,7 @@ def desenha_linha_base_pulso(pontos, frame_saida, video_largura, y_linha_base):
     inicio = (0, y_linha_base)
     fim = (largura_frame, y_linha_base)
     cv2.line(frame_saida, inicio, fim, (0, 0, 255), 1)
-    cv2.putText(frame_saida, " linha base pulso", inicio, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
+    cv2.putText(frame_saida, " linha base pulso", inicio, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
     return y_linha_base
 
@@ -120,7 +103,7 @@ def desenha_linha_base_cotovelo(pontos, frame_saida, video_largura, y_linha_base
     inicio = (0, y_linha_base)
     fim = (largura_frame, y_linha_base)
     cv2.line(frame_saida, inicio, fim, (0, 0, 255), 1)
-    cv2.putText(frame_saida, " linha base cotovelo", inicio, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
+    cv2.putText(frame_saida, " linha base cotovelo", inicio, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
     return y_linha_base
 
@@ -135,15 +118,16 @@ def desenha_linha_limite_movimentos_validos(frame_saida, y_linha_base_cotovelo, 
              1)
 
     cv2.putText(frame_saida, " limite cabeca superior", (0, limite_movimento_superior), cv2.FONT_HERSHEY_PLAIN, 1,
-                (0, 255, 0))
+                (0, 255, 255))
     cv2.putText(frame_saida, " limite cabeca inferior", (0, limite_movimento_inferior), cv2.FONT_HERSHEY_PLAIN, 1,
-                (0, 255, 0))
+                (0, 255, 255))
 
     return limite_movimento_inferior, limite_movimento_superior
 
 
-def checa_flexao(pontos, percentual_movimento_flexao, limite_movimento_inferior, limite_movimento_superior,
-                 y_linha_base_cotovelo):
+def verifica_execucao_movimento(pontos, percentual_movimento_flexao, limite_movimento_inferior,
+                                limite_movimento_superior,
+                                y_linha_base_cotovelo):
     cabeca = pontos[0]
 
     if cabeca:
@@ -171,23 +155,40 @@ def checa_flexao(pontos, percentual_movimento_flexao, limite_movimento_inferior,
     return percentual_movimento_flexao
 
 
+# Acessa o video que será analisado.
+captura = cv2.VideoCapture(video_entrada)
+_, frame_inicial = captura.read()
+
+# Define as configurações do vídeo de saida que vai conter os pontos detectados e movimentos detectados.
+video_saida = "./output/flexao_bracos_saida.avi"
+gravar_video = cv2.VideoWriter(video_saida, cv2.VideoWriter_fourcc(*'XVID'), 10,
+                               (frame_inicial.shape[1], frame_inicial.shape[0]))
+
+# Carrega a RN que já foi treinada e os pesos.
+modelo = cv2.dnn.readNetFromCaffe(arquivo_proto, arquivo_pesos)
+# Define o limite mínimo do mapa de confiança
+limite_confianca = 0.3  # 30%
+
 while (True):
 
-    conectado, frame = captura.read()
+    _, frame = captura.read()
     video_copia = np.copy(frame)
     video_largura = frame.shape[1]
     video_altura = frame.shape[0]
 
     qtd_frames += 1
 
-    # Processa somente os frames onde a quatidade for multiplo de 3 para agilizar o processamento.
+    # Processa somente os frames onde a quatidade for multiplo de 3 para otimizar o processamento.
     if qtd_frames % 3 == 0:
         # Conversão do tipo da imagem para o tipo utilizado pela rede
         blob_entrada = cv2.dnn.blobFromImage(frame, 1.0 / 255, (entrada_largura, entrada_altura), (0, 0, 0),
                                              swapRB=False,
                                              crop=False)
 
+        # Define as entradas da rede
         modelo.setInput(blob_entrada)
+
+        # Realiza a previsao
         saida_rede = modelo.forward()
 
         # Desenha os pontos detectados na imagem.
@@ -195,8 +196,6 @@ while (True):
 
         # Desenha os traços conectando os pontos detectados na imagem.
         desenha_tracos(pontos, pares_pontos)
-
-    # desenha_linha_cotovelos(pontos, video_copia, video_largura)
 
     if pontos is not None:
 
@@ -214,12 +213,12 @@ while (True):
                                                                                                            video_largura)
 
             # Verfica se o movimento realizado é um movimento válido.
-            percentual_movimento_flexao = checa_flexao(pontos,
-                                                       percentual_movimento_flexao,
-                                                       limite_movimento_inferior,
-                                                       limite_movimento_superior,
-                                                       y_linha_base_cotovelo
-                                                       )
+            percentual_movimento_flexao = verifica_execucao_movimento(pontos,
+                                                                      percentual_movimento_flexao,
+                                                                      limite_movimento_inferior,
+                                                                      limite_movimento_superior,
+                                                                      y_linha_base_cotovelo
+                                                                      )
 
         cv2.putText(video_copia, "Movimento {:.0%} concluido".format(percentual_movimento_flexao), (10, 35),
                     cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))

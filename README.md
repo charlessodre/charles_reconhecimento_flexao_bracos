@@ -12,7 +12,8 @@
 ## Informação sobre os arquivos:
 
 <p> <b>reconhecimento_flexao_bracos.py </b> - Esse programa realiza o reconhecimento das flexões de braço no vídeo que está no diretório “videos” e salva o vídeo, com os movimentos reconhecidos, no diretório “output” </p>
-## Estrutura dos diretórios:
+
+### Estrutura dos diretórios:
 <p> <b>videos</b>- Neste diretório ficam os vídeos que desejamos realizar o reconhecimento das flexões de braço. </p>
 <p> <b>output </b>- Neste diretório será salvo o vídeo com a saída do reconhecimento realizado e quantidade de flexões de braços válidas. </p>
 
