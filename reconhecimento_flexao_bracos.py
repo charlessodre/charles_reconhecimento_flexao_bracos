@@ -1,7 +1,6 @@
 # coding=utf-8
 
 import cv2
-# import matplotlib.pyplot as plt
 import numpy as np
 
 # Caminhos das estruturas da rede neural pré-treinados
@@ -82,45 +81,6 @@ def desenha_tracos(pontos, pares_pontos):
             cv2.circle(frame, pontos[fim_traco], 4, (14, 201, 255), thickness=1, lineType=cv2.FILLED)
 
 
-def desenha_linha_cotovelos(pontos, frame_saida, video_largura):
-    largura_frame = int(video_largura)
-
-    if pontos[0]:
-        y = pontos[0][1]
-        inicio = (0, y)
-        fim = (largura_frame, y)
-        cv2.line(frame_saida, inicio, fim, (0, 255, 255), 1)
-        cv2.putText(frame_saida, "cabeca [{}]".format(inicio), inicio, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
-
-    if pontos[3]:
-        y = pontos[3][1]
-        inicio = (0, y)
-        fim = (largura_frame, y)
-        cv2.line(frame_saida, inicio, fim, (255, 0, 255), 1)
-        cv2.putText(frame_saida, "cotovelo direito", inicio, fonte, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
-
-    if pontos[6]:
-        y = pontos[6][1]
-        inicio = (0, y)
-        fim = (largura_frame, y)
-        cv2.line(frame_saida, inicio, fim, (0, 0, 255), 1)
-        cv2.putText(frame_saida, "cotovelo esquerdo", inicio, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
-
-    # if pontos[4]:
-    #     y = pontos[4][1]
-    #     inicio = (0, y)
-    #     fim = (largura_frame, y)
-    #     cv2.line(frame_saida, inicio, fim, (0, 0, 255), 1)
-    #     cv2.putText(frame_saida, "pulso direito", inicio,  cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0) )
-    #
-    # if pontos[7]:
-    #     y = pontos[7][1]
-    #     inicio = (0, y)
-    #     fim = (largura_frame, y)
-    #     cv2.line(frame_saida, inicio, fim, (0, 0, 255), 1)
-    #     cv2.putText(frame_saida, "pulso esquerdo", inicio,  cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0) )
-
-
 def desenha_linha_base_pulso(pontos, frame_saida, video_largura, y_linha_base):
     largura_frame = int(video_largura)
 
@@ -166,55 +126,24 @@ def desenha_linha_base_cotovelo(pontos, frame_saida, video_largura, y_linha_base
 
 
 def desenha_linha_limite_movimentos_validos(frame_saida, y_linha_base_cotovelo, largura_frame):
-    limite_movimento_superior = y_linha_base_cotovelo - int(y_linha_base_cotovelo * .6)
+    limite_movimento_superior = y_linha_base_cotovelo - int(y_linha_base_cotovelo * .4)
     limite_movimento_inferior = y_linha_base_cotovelo + int(y_linha_base_cotovelo * .15)
 
-    cv2.line(frame_saida, (0, limite_movimento_superior ),  (int(largura_frame), limite_movimento_superior), (255, 0, 0), 1)
-    cv2.line(frame_saida, (0, limite_movimento_inferior ),  (int(largura_frame), limite_movimento_inferior), (255, 0, 0), 1)
+    cv2.line(frame_saida, (0, limite_movimento_superior), (int(largura_frame), limite_movimento_superior), (255, 0, 0),
+             1)
+    cv2.line(frame_saida, (0, limite_movimento_inferior), (int(largura_frame), limite_movimento_inferior), (255, 0, 0),
+             1)
 
-    cv2.putText(frame_saida, " limite cabeca superior", (0, limite_movimento_superior), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
-    cv2.putText(frame_saida, " limite cabeca inferior", (0, limite_movimento_inferior), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
+    cv2.putText(frame_saida, " limite cabeca superior", (0, limite_movimento_superior), cv2.FONT_HERSHEY_PLAIN, 1,
+                (0, 255, 0))
+    cv2.putText(frame_saida, " limite cabeca inferior", (0, limite_movimento_inferior), cv2.FONT_HERSHEY_PLAIN, 1,
+                (0, 255, 0))
 
     return limite_movimento_inferior, limite_movimento_superior
 
 
-# def checa_flexao(pontos, frame_saida, y_linha_base_pulso, linha_base_cotovelo, percentual_movimento_flexao,  qtd_flexao_valida):
-#     cabeca = pontos[0]
-#     percentual_inicio = 0.3
-#     percentual_fim = 0.6
-#
-#     if cabeca:
-#
-#         y_cabeca = cabeca[1]
-#         # 50% do movimento completo
-#         if y_cabeca < y_linha_base_pulso and y_cabeca > linha_base_cotovelo:
-#             percentual_movimento_flexao = 0.50
-#             cv2.putText(frame_saida, "Movimento {:.0%} concluido".format(percentual_movimento_flexao), (10, 35), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0) )
-#
-#         # 75% do movimento completo
-#         if percentual_movimento_flexao == 0.5 and y_cabeca < y_linha_base_pulso and y_cabeca < linha_base_cotovelo:
-#             percentual_movimento_flexao = 0.75
-#             cv2.putText(frame_saida, "Movimento {:.0%} concluido".format(percentual_movimento_flexao), (10, 35), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0) )
-#
-#
-#         y_cabeca_final = y_cabeca - (y_cabeca * percentual_fim)
-#
-#         # 100% do movimento completo
-#         if percentual_movimento_flexao == 0.75 and y_cabeca_final < y_linha_base_pulso and y_cabeca_final < linha_base_cotovelo:
-#             percentual_movimento_flexao = 1
-#             cv2.putText(frame_saida,
-#                         "Movimento {:.0%} concluido".format(percentual_movimento_flexao), (
-#                             10, 35), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0) )
-#
-#         if percentual_movimento_flexao == 1:
-#             qtd_flexao_valida += 1
-#             percentual_movimento_flexao = 0
-#
-#     return percentual_movimento_flexao, qtd_flexao_valida
-
-def checa_flexao(pontos, frame_saida, percentual_movimento_flexao,  limite_movimento_inferior, limite_movimento_superior,
-                 y_linha_base_cotovelo,
-                 qtd_flexao_valida):
+def checa_flexao(pontos, percentual_movimento_flexao, limite_movimento_inferior, limite_movimento_superior,
+                 y_linha_base_cotovelo):
     cabeca = pontos[0]
 
     if cabeca:
@@ -224,26 +153,22 @@ def checa_flexao(pontos, frame_saida, percentual_movimento_flexao,  limite_movim
         if percentual_movimento_flexao == 0 and (y_cabeca < y_linha_base_pulso and y_cabeca < y_linha_base_cotovelo):
             percentual_movimento_flexao = 0.25
 
-
         # 50% do movimento completo
-        if percentual_movimento_flexao == 0.25 and (y_cabeca >= limite_movimento_inferior and y_cabeca >= y_linha_base_cotovelo):
+        if percentual_movimento_flexao == 0.25 and (
+                y_cabeca >= limite_movimento_inferior and y_cabeca >= y_linha_base_cotovelo):
             percentual_movimento_flexao = 0.5
 
         # 75% do movimento completo
-        if percentual_movimento_flexao == 0.5 and (y_cabeca <= limite_movimento_inferior and y_cabeca <= y_linha_base_cotovelo):
+        if percentual_movimento_flexao == 0.5 and (
+                y_cabeca <= limite_movimento_inferior and y_cabeca <= y_linha_base_cotovelo):
             percentual_movimento_flexao = 0.75
 
         # 100% do movimento completo
-        if percentual_movimento_flexao == 0.75 and ( y_cabeca <= y_linha_base_cotovelo and y_cabeca <= limite_movimento_superior):
+        if percentual_movimento_flexao == 0.75 and (
+                y_cabeca <= y_linha_base_cotovelo and y_cabeca <= limite_movimento_superior):
             percentual_movimento_flexao = 1
 
-        #cv2.putText(frame_saida, "Movimento {:.0%} concluido".format(percentual_movimento_flexao), ( 10, 35), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
-
-        if percentual_movimento_flexao == 1:
-            qtd_flexao_valida += 1
-            percentual_movimento_flexao = 0
-
-    return percentual_movimento_flexao, qtd_flexao_valida
+    return percentual_movimento_flexao
 
 
 while (True):
@@ -255,9 +180,9 @@ while (True):
 
     qtd_frames += 1
 
-    # Processa somente os frames onde a quatidade for multiplo de 5 para agilizar o processamento.
-    if qtd_frames % 2 == 0:
-        # Conversão do tipo da imagem para o tipo aceito pela rede
+    # Processa somente os frames onde a quatidade for multiplo de 3 para agilizar o processamento.
+    if qtd_frames % 3 == 0:
+        # Conversão do tipo da imagem para o tipo utilizado pela rede
         blob_entrada = cv2.dnn.blobFromImage(frame, 1.0 / 255, (entrada_largura, entrada_altura), (0, 0, 0),
                                              swapRB=False,
                                              crop=False)
@@ -289,14 +214,20 @@ while (True):
                                                                                                            video_largura)
 
             # Verfica se o movimento realizado é um movimento válido.
-            percentual_movimento_flexao, qtd_flexao_valida = checa_flexao(pontos, video_copia,
-                                                                          percentual_movimento_flexao,
-                                                                          limite_movimento_inferior,
-                                                                          limite_movimento_superior,
-                                                                          y_linha_base_cotovelo,
-                                                                          qtd_flexao_valida)
+            percentual_movimento_flexao = checa_flexao(pontos,
+                                                       percentual_movimento_flexao,
+                                                       limite_movimento_inferior,
+                                                       limite_movimento_superior,
+                                                       y_linha_base_cotovelo
+                                                       )
 
-        cv2.putText(video_copia, "Movimento {:.0%} concluido".format(percentual_movimento_flexao), (10, 35), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
+        cv2.putText(video_copia, "Movimento {:.0%} concluido".format(percentual_movimento_flexao), (10, 35),
+                    cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
+
+        if percentual_movimento_flexao == 1:
+            qtd_flexao_valida += 1
+            percentual_movimento_flexao = 0
+
         cv2.putText(video_copia, "Movimentos Validos: {}".format(qtd_flexao_valida), (10, 20), cv2.FONT_HERSHEY_PLAIN,
                     1, (0, 255, 0))
 

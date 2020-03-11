@@ -4,9 +4,10 @@
 
 <p> Nesse estudo vamos utilizar o modelo <b> MPII Human Pose Models </b> para realizar alguns testes de reconhecimento de flexão de braços. </p>
 
-<p> O modelo e exemplos utilizados neste estudo foram retirados do site: </p>
+<p> O modelo e exemplos utilizados neste estudo foram retirados do sites: </p>
 
 <p> https://pose.mpi-inf.mpg.de/</p>
+<p> https://www.udemy.com/course/reconhecimento-gestos-acoes-python-opencv/</p>
 
 ## Informação sobre os arquivos:
 
@@ -17,4 +18,12 @@
 
 ## Exemplo de flexões de braços reconhecidas:
 
-![Exemplo de flexões reconhecidas](exemplo.gif)
+<p> Flexão Frontal </p>
+![Exemplo de flexões reconhecidas_frontal](flexao_bracos_frontal.gif)
+
+<p> Flexão Lateral Perto </p>
+![Exemplo de flexões reconhecidas_lateral_perto](flexao_bracos_lateral_perto.gif)
+
+<p> Flexão Lateral Distante </p>
+![Exemplo de flexões reconhecidas_lateral_distante](flexao_bracos_lateral_distante.gif)
+
